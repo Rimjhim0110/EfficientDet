@@ -1,19 +1,9 @@
-from typing import Optional
 import tensorflow as tf
 import efficientnet.tfkeras as efficientnet
+from typing import Optional
 
 def efficientnet_backbone(model_version: int = 0, pretrained_weights: Optional[str] = 'imagenet') -> tf.keras.Model:
-    """
-    Create an EfficientNet backbone model with intermediate feature outputs
-
-    Parameters:
-    model_version (int): The version of the EfficientNet architecture to use
-    pretrained_weights (str, optional): If 'imagenet', use weights pre-trained on the ImageNet dataset
-                                        If 'none' or any other value, initialize the model with random weights
-
-    Returns:
-    tf.keras.Model: An EfficientNet backbone model with intermediate feature outputs.
-    """
+    
     # Get the EfficientNet class corresponding to the specified model version
     efficientnet_cls = getattr(efficientnet, f'EfficientNetB{model_version:d}')
     
