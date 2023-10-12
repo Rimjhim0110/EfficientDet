@@ -1,1 +1,1 @@
-# EfficientDet-Scalable_and_Efficient_Object_Detection
+Implementation of EfficientDet: https://arxiv.org/pdf/1911.09070.pdf
