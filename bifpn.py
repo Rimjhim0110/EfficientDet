@@ -101,5 +101,5 @@ class BiFPN(tf.keras.Model):
 
         features = [P3, P4, P5, P6, P7]
         
-        features = utils.cascade_layers(self.blocks, features, training=training)
+        features = cascade_layers.cascade_layers(self.blocks, features, training=training)
         return features
