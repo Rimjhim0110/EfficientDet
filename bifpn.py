@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 from typing import List
-from . import layers
-from efficientdet.utils import cascade_layers
+from . import cnn_layers
+from utils import cascade_layers
 
 EPSILON = 1e-5
 
@@ -37,7 +37,6 @@ class FastFusion(tf.keras.layers.Layer):
         
 
 class BiFPNBlock(tf.keras.layers.Layer):
-
     def __init__(self, features: int, prefix: str = '') -> None:
         super(BiFPNBlock, self).__init__()
 
