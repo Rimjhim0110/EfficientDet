@@ -2,7 +2,7 @@ import math
 import tensorflow as tf
 
 from . import cnn_layers
-from efficientdet.utils import cascade_layers
+from utils import cascade_layers
 
 class RetinaNetBBPredictor(tf.keras.Model):
     def __init__(self, width: int, depth: int, num_anchors: int = 9, prefix: str = ''):
