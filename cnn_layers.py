@@ -7,14 +7,13 @@ class ResizeLayer(tf.keras.layers.Layer):
         self.conv_block = ConvBlock(num_features, separable=True, kernel_size=3, padding='same', prefix=prefix+'conv_block/')
 
     def call(self, images: tf.Tensor, target_shape: Tuple[int, int, int, int] = None, training: bool = True) -> tf.Tensor:
-
-        # Extract height and width from the target shape.
+        # Extract height and width from the target shape
         height, width = target_shape[1], target_shape[2]
         
-        # Resize the input tensor.
+        # Resize the input tensor
         resized_images = tf.image.resize(images, [height, width], method='nearest')
         
-        # Apply the convolution block to the resized tensor.
+        # Apply the convolution block to the resized tensor
         output = self.conv_block(resized_images, training=training)
         
         return output
@@ -44,11 +43,10 @@ class ConvBlock(tf.keras.layers.Layer):
             self.activation = tf.keras.layers.Activation('linear', name=layer_prefix+'linear')
 
     def call(self, x: tf.Tensor, is_training: bool = True) -> tf.Tensor:
-
-        # Apply batch normalization to the output of the convolution layer.
+        # Apply batch normalization to the output of the convolution layer
         conv_output = self.batch_norm(self.conv_layer(x), training=is_training)
         
-        # Apply the activation function.
+        # Apply the activation function
         output = self.activation(conv_output)
 
         return output
