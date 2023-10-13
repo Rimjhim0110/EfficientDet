@@ -13,8 +13,8 @@ class FastFusion(tf.keras.layers.Layer):
         self.size = size
         self.w = self.add_weight(name=prefix + 'w', shape=(size,), initializer=tf.initializers.Ones(), trainable=True)
         self.relu = tf.keras.layers.Activation('relu', name=prefix + 'relu')
-        self.conv = layers.ConvBlock(features, separable=True, kernel_size=3, strides=1, padding='same', activation='swish', prefix=prefix + 'conv_block/')
-        self.resize = layers.Resize(features, prefix=prefix + 'resize/')
+        self.conv = cnn_layers.ConvBlock(features, separable_conv=True, kernel_size=3, strides=1, padding='same', activation='swish', layer_prefix=prefix + 'conv_block/')
+        self.resize = cnn_layers.ResizeLayer(features, prefix=prefix + 'resize/')
         #naming is done to identify each layer (prefix + '..')
 
     def call(self, inputs: List[tf.Tensor], training: bool = True) -> tf.Tensor:
@@ -29,8 +29,7 @@ class FastFusion(tf.keras.layers.Layer):
         w_sum = EPSILON + tf.reduce_sum(w, axis=0)
 
         #using fast normalized fusion instead of softmax
-        weighted_inputs = [(w[i] * resampled_features[i]) / w_sum
-                           for i in range(self.size)]
+        weighted_inputs = [(w[i] * resampled_features[i]) / w_sum for i in range(self.size)]
       
         weighted_sum = tf.add_n(weighted_inputs)
         return self.conv(weighted_sum, training=training)
@@ -80,16 +79,14 @@ class BiFPN(tf.keras.Model):
         super(BiFPN, self).__init__()
 
         #pixel-wise for each feature comming from the bottom-up
-        self.pixel_wise = [layers.ConvBlock(features, kernel_size=1, prefix=prefix + f'pixel_wise_{i}/')
-                            for i in range(3)] 
+        self.pixel_wise = [cnn_layers.ConvBlock(features, kernel_size=1, layer_prefix=prefix + f'pixel_wise_{i}/') for i in range(3)] 
 
-        self.gen_P6 = layers.ConvBlock(features, kernel_size=3, strides=2, padding='same', prefix=prefix + 'gen_P6/')
+        self.gen_P6 = cnn_layers.ConvBlock(features, kernel_size=3, strides=2, padding='same', layer_prefix=prefix + 'gen_P6/')
         self.relu = tf.keras.layers.Activation('relu', name=prefix + 'relu')
 
-        self.gen_P7 = layers.ConvBlock(features, kernel_size=3, strides=2, padding='same', prefix=prefix + 'gen_P7/')
+        self.gen_P7 = cnn_layers.ConvBlock(features, kernel_size=3, strides=2, padding='same', layer_prefix=prefix + 'gen_P7/')
 
-        self.blocks = [BiFPNBlock(features, prefix=prefix + f'block_{i}/') 
-                                  for i in range(n_blocks)]
+        self.blocks = [BiFPNBlock(features, prefix=prefix + f'block_{i}/') for i in range(n_blocks)]
 
     def call(self, inputs: List[tf.Tensor], training: bool = True) -> List[tf.Tensor]:
         #each Pin has shape(batch, H, W, C)
@@ -98,12 +95,11 @@ class BiFPN(tf.keras.Model):
         _, _, *C = inputs
         # first 2 elements of 'inputs' are not required
       
-        P3, P4, P5 = [self.pixel_wise[i](C[i], training=training) 
-                      for i in range(len(C))]
+        P3, P4, P5 = [self.pixel_wise[i](C[i], training=training) for i in range(len(C))]
         P6 = self.gen_P6(C[-1], training=training)
         P7 = self.gen_P7(self.relu(P6), training=training)
 
         features = [P3, P4, P5, P6, P7]
         
-        features = tf_utils.cascade_layers(self.blocks, features, training=training)
+        features = utils.cascade_layers(self.blocks, features, training=training)
         return features
