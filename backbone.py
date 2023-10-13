@@ -17,7 +17,6 @@ def efficientnet_backbone(model_version: int = 0, pretrained_weights: Optional[s
     # Iterate through the layers to find down-sampling layers and collect intermediate features
     for curr_layer, next_layer in zip(layers[:-1], layers[1:]):
         if hasattr(next_layer, 'strides') and next_layer.strides[0] == 2:
-            # If the next layer has stride 2, it's a down-sampling layer, so add the current layer to the features
             intermediate_features.append(curr_layer)
     
     # Add the last layer to the intermediate features list
