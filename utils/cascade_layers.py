@@ -2,7 +2,6 @@ import tensorflow as tf
 from typing import Any, Sequence
 
 def cascade_layers(layers: Sequence[tf.keras.layers.Layer], input_data: Any, is_training: bool = True) -> Any:
-
     # Initialize the output variable with the input data
     output_data = input_data
     
