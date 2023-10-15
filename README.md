@@ -1,6 +1,6 @@
 # EfficientDet: Scalable and Efficient Object Detection
 
-EfficientDet is an efficient and scalable object detection framework that systematically explores neural network architecture design choices to optimize efficiency. This project implements core components of EfficientDet as proposed in the research paper, "EfficientDet: Scalable and Efficient Object Detection" by Mingxing Tan, Ruoming Pang, and Quoc V. Le from Google Research.
+EfficientDet is an efficient and scalable object detection framework that systematically explores neural network architecture design choices to optimize efficiency. The project is an implementation of key components proposed in the research paper, "EfficientDet: Scalable and Efficient Object Detection" by Mingxing Tan, Ruoming Pang, and Quoc V. Le from Google Research. You can access the full paper [here](https://arxiv.org/abs/1911.09070).
 
 ## Table of Contents
 
