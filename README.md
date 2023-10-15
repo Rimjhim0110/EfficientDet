@@ -21,8 +21,9 @@ EfficientDet represents an evolution in object detection by improving both effic
 
 The codebase is organized into the following modules:
 
-- `efficientdet.py`: Contains the core EfficientDet model that integrates backbone architecture, feature extraction, and prediction networks.
-- `cnn_layers.py`: Includes reusable layers and utilities that help construct the model architecture.
-- `retinanet.py`: Defines the RetinaNet architecture responsible for bounding box prediction and classification.
 - `backbone.py`: Describes the EfficientDet backbone architecture, offering various EfficientNet variants.
+- `bifpn.py`: Implements Bi-directional Feature Pyramid Network (BiFPN) responsible for multi-scale feature fusion.
+- `cnn_layers.py`: Includes reusable layers and utilities that help construct the model architecture.
+- `efficientdet.py`: Contains the core EfficientDet model that integrates backbone architecture, feature extraction, and prediction networks.
+- `retinanet.py`: Defines the RetinaNet architecture responsible for bounding box prediction and classification.
 - `utils`: A collection of utility functions used throughout the codebase.
