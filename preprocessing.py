@@ -1,9 +1,16 @@
 import tensorflow as tf
 from typing import Tuple, Union, Sequence, Mapping
-
-from efficientdet.data import preprocess
 from pathlib import Path
 
+def normalize_image(image: tf.Tensor) -> tf.Tensor:
+    mean = tf.constant([0.485, 0.456, 0.406])
+    std = tf.constant([0.229, 0.224, 0.225])
+    return (image - mean) / std
+
+def unnormalize_image(image: tf.Tensor) -> tf.Tensor:
+    mean = tf.constant([0.485, 0.456, 0.406])
+    std = tf.constant([0.229, 0.224, 0.225])
+    return image * std + mean
 
 def preprocess_image(img_path: str,img_size: Tuple[int, int],is_normalization_reqd: bool = False) -> tf.Tensor:
                 
@@ -15,17 +22,12 @@ def preprocess_image(img_path: str,img_size: Tuple[int, int],is_normalization_re
 
     #converting image to same range pixel values 
     img = tf.image.convert_image_dtype(img, tf.float32)
-
-    #if normalization is required preprocess image
     if is_normalization_reqd:
-        img = preprocess.normalize_image(img)
+        img = normalize_image(img)
         
     return tf.image.resize(img, img_size)
 
-
 def classnames_mapping(filename: Union[str, Path]) -> Tuple[Sequence[str], Mapping[str, int]]:
-    
-    
     class_name = Path(filename).read_text().split('\n')
     class_name = [cl.strip() for cl in class_name]
 
