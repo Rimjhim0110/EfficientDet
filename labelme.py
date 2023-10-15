@@ -12,7 +12,7 @@ from efficientdet.typing import Annotation, ObjectDetectionInstance
 def _load_bbox_from_rectangle(
         points: Iterable[Sequence[float]]) -> Sequence[float]:
     return sum(points, [])
-
+#This function converts a sequence of points representing a rectangle into a flat sequence of coordinates.
 
 def _load_bbox_from_polygon(
         points: Iterable[Sequence[float]]) -> Sequence[float]:
@@ -22,7 +22,7 @@ def _load_bbox_from_polygon(
     ymin = min(ys)
     ymax = max(ys)
     return [xmin, ymin, xmax, ymax]
-
+#transforms a sequence of points representing a polygon into a flat sequence of coordinates defining the bounding box of the polygon.
 
 def _load_labelme_instance(
         images_base_path: Union[str, Path],
@@ -54,7 +54,7 @@ def _load_labelme_instance(
     boxes = tf.stack(bbs)
     boxes = bb_utils.normalize_bndboxes(boxes, (h, w))
     return image, (tf.stack(labels), boxes)
-
+#Reads a LabelMe annotation and returns an object detection instance, including image data, labels, and normalized bounding boxes.
 
 def _labelme_gen(
         images_base_path: Union[str, Path],
@@ -66,7 +66,7 @@ def _labelme_gen(
                                      annot_path=f,
                                      im_input_size=im_input_size,
                                      class2idx=class2idx)
-
+#A generator that yields object detection instances by processing LabelMe annotation files.
 
 def _scale_boxes(image: tf.Tensor, 
                  annots: Annotation,
@@ -83,9 +83,9 @@ def _scale_boxes(image: tf.Tensor,
     y2 *= h
     
     return image, (labels, tf.concat([x1, y1, x2, y2], axis=1))
+#A function that scales bounding boxes within a TensorFlow dataset pipeline to match a target image size.
 
-
-def build_dataset(annotations_path: Union[str, Path],
+def build_dataset(annotations_path: Union[str, Path],  
                   images_path: Union[str, Path],
                   class2idx: Mapping[str, int],
                   im_input_size: Tuple[int, int],
@@ -112,5 +112,6 @@ def build_dataset(annotations_path: Union[str, Path],
                           output_types=(tf.float32, (tf.int32, tf.float32)),
                           output_shapes=output_shapes)
           .map(scale_boxes))
-
+   
     return ds
+#Creates a TensorFlow dataset for object detection using LabelMe annotations and images, including options for shuffling the data.
