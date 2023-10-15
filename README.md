@@ -13,8 +13,8 @@ EfficientDet represents an evolution in object detection by improving both effic
 
 - **Bi-directional Feature Pyramid Network (BiFPN)**: An innovative feature fusion technique that enhances multi-scale feature extraction.
 - **Compound Scaling**: A unified scaling approach that adjusts resolution, depth, and width for improved model efficiency.
-- **Versatile Object Detectors**: This project offers a range of pre-trained detectors suitable for various resource constraints.
-- **State-of-the-Art Performance**: Achieve top-tier object detection results on benchmark datasets with fewer computational resources.
+- **Versatile Object Detectors**: A range of pre-trained detectors suitable for various resource constraints
+- **State-of-the-Art Performance**: Top-tier object detection results on benchmark COCO dataset with fewer computational resources.
 - **Open-Source Initiative**: The codebase is open-source, fostering collaboration and further development in the computer vision community.
 
 ## Code Organization
