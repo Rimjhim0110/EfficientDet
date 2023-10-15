@@ -102,7 +102,6 @@ def single_image_nms(boxes: tf.Tensor, scores: tf.Tensor, score_threshold: float
     # Apply NMS for each class and concatenate the results
     return tf.concat([per_class_nms(c) for c in range(tf.shape(scores)[-1])], axis=0)
 
-
 def nms(boxes: tf.Tensor, class_scores: tf.Tensor, score_threshold: float = 0.5) -> Tuple[Sequence[tf.Tensor], Sequence[tf.Tensor], Sequence[tf.Tensor]]:
     # Determine the batch size and the number of classes
     batch_size = tf.shape(boxes)[0]
