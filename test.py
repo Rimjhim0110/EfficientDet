@@ -2,8 +2,8 @@ import os
 import argparse
 import torch
 from torchvision import transforms
-from src.dataset import CocoDataset, Resizer, Normalizer
-from src.config import COCO_CLASSES, colors
+from dataset import CocoDataset, Resizer, Normalizer
+from config import COCO_CLASSES, colors
 import cv2
 import shutil
 
