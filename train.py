@@ -1,98 +1,189 @@
-import json
-from pathlib import Path
-from typing import Mapping, Any
+import os
+import argparse
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torchvision import transforms
+from src.dataset import CocoDataset, Resizer, Normalizer, Augmenter, collater
+from src.model import EfficientDet
+from tensorboardX import SummaryWriter
+import shutil
+import numpy as np
+from tqdm.autonotebook import tqdm
 
-import click
-import tensorflow as tf
-import tensorflow_addons as tfa
-import efficientdet
 
-from .callbacks import COCOmAPCallback
+def get_args():
+    parser = argparse.ArgumentParser(
+        "EfficientDet: Scalable and Efficient Object Detection implementation by Signatrix GmbH")
+    parser.add_argument("--image_size", type=int, default=512, help="The common width and height for all images")
+    parser.add_argument("--batch_size", type=int, default=8, help="The number of images per batch")
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument('--alpha', type=float, default=0.25)
+    parser.add_argument('--gamma', type=float, default=1.5)
+    parser.add_argument("--num_epochs", type=int, default=500)
+    parser.add_argument("--test_interval", type=int, default=1, help="Number of epoches between testing phases")
+    parser.add_argument("--es_min_delta", type=float, default=0.0,
+                        help="Early stopping's parameter: minimum change loss to qualify as an improvement")
+    parser.add_argument("--es_patience", type=int, default=0,
+                        help="Early stopping's parameter: number of epochs with no improvement after which training will be stopped. Set to 0 to disable this technique.")
+    parser.add_argument("--data_path", type=str, default="data/COCO", help="the root folder of dataset")
+    parser.add_argument("--log_path", type=str, default="tensorboard/signatrix_efficientdet_coco")
+    parser.add_argument("--saved_path", type=str, default="trained_models")
 
-def train(config: config.EfficientDetCompudScaling, save_checkpoint_dir: Path, ds: tf.data.Dataset, val_ds: tf.data.Dataset, class2idx: Mapping[str, int] , **kwargs: Any) -> None:
+    args = parser.parse_args()
+    return args
 
-    weights_file = str(save_checkpoint_dir / 'model.h5')
-    im_size = config.input_size
 
-    steps_per_epoch = sum(1 for _ in ds)
-    if val_ds is not None:
-        validation_steps = sum(1 for _ in val_ds)
+def train(opt):
+    num_gpus = 1
+    if torch.cuda.is_available():
+        num_gpus = torch.cuda.device_count()
+        torch.cuda.manual_seed(123)
     else:
-        validation_steps = 0
+        torch.manual_seed(123)
 
-    if kwargs['from_pretrained'] is not None:
-        model = EfficientDet(weights=kwargs['from_pretrained'], num_classes=len(class2idx), custom_head_classifier=True, freeze_backbone=kwargs['freeze_backbone'], training_mode=True)
-        print('Training from a pretrained model...')
-        print('This will override any configuration related to EfficientNet'
-              ' using the defined in the pretrained model.')
-    else:
-        model = EfficientDet(len(class2idx), D=kwargs['efficientdet'], bidirectional=kwargs['bidirectional'], freeze_backbone=kwargs['freeze_backbone'], weights='imagenet', training_mode=True)
+    training_params = {"batch_size": opt.batch_size * num_gpus,
+                       "shuffle": True,
+                       "drop_last": True,
+                       "collate_fn": collater,
+                       "num_workers": 12}
 
-    if kwargs['w_scheduler']:
-        lr = optim.WarmupCosineDecayLRScheduler(kwargs['learning_rate'], warmup_steps=steps_per_epoch, decay_steps=steps_per_epoch * (kwargs['epochs'] - 1), alpha=kwargs['alpha'])
-    else:
-        lr = kwargs['learning_rate']
+    test_params = {"batch_size": opt.batch_size,
+                   "shuffle": False,
+                   "drop_last": False,
+                   "collate_fn": collater,
+                   "num_workers": 12}
 
-    optimizer = tfa.optimizers.AdamW(learning_rate=lr, weight_decay=4e-5)
+    training_set = CocoDataset(root_dir=opt.data_path, set="train2017",
+                               transform=transforms.Compose([Normalizer(), Augmenter(), Resizer()]))
+    training_generator = DataLoader(training_set, **training_params)
 
-    regression_loss_fn = loss_functions.EfficientDetHuberLoss()
-    clf_loss_fn = loss_functions.EfficientDetFocalLoss()
-    
-    # Wrap to return anchors labels
-    wrapped_ds = wrap_detection_dataset(ds, im_size=im_size, num_classes=len(class2idx))
+    test_set = CocoDataset(root_dir=opt.data_path, set="val2017",
+                           transform=transforms.Compose([Normalizer(), Resizer()]))
+    test_generator = DataLoader(test_set, **test_params)
 
-    wrapped_val_ds = wrap_detection_dataset(val_ds, im_size=im_size, num_classes=len(class2idx))
-    
-    model.compile(loss=[regression_loss_fn, clf_loss_fn], optimizer=optimizer, loss_weights=[1., 1.])
-    #to create model specs
-    model.build([None, *im_size, 3])
-    model.summary()
+    model = EfficientDet(num_classes=training_set.num_classes())
 
-    if kwargs['checkpoint'] is not None:
-        model.load_weights(str(Path(kwargs['checkpoint']) / 'model.h5'))
 
-    model.save_weights(weights_file)
-    kwargs.update(n_classes=len(class2idx))
-    json.dump(kwargs, (save_checkpoint_dir / 'hp.json').open('w'))
+    if os.path.isdir(opt.log_path):
+        shutil.rmtree(opt.log_path)
+    os.makedirs(opt.log_path)
 
-    callbacks = [COCOmAPCallback(val_ds, class2idx, print_freq=kwargs['print_freq'], validate_every=kwargs['validate_freq']),
-                 tf.keras.callbacks.ModelCheckpoint(weights_file, 
-                                                    save_best_only=True)]
+    if not os.path.isdir(opt.saved_path):
+        os.makedirs(opt.saved_path)
 
-    model.fit(wrapped_ds.repeat(), validation_data=wrapped_val_ds, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps, epochs=kwargs['epochs'], callbacks=callbacks, shuffle=False)
+    writer = SummaryWriter(opt.log_path)
+    if torch.cuda.is_available():
+        model = model.cuda()
+        model = nn.DataParallel(model)
 
-def labelme(ctx: click.Context, **kwargs: Any) -> None:
-    kwargs.update(ctx.obj['common'])
-    
-    config = ctx.obj['config']
-    save_checkpoint_dir = ctx.obj['save_checkpoint_dir']
+    optimizer = torch.optim.Adam(model.parameters(), opt.lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, verbose=True)
 
-    _, class2idx = utils.preprocessing.read_class_names(
-        kwargs['classes_file'])
+    best_loss = 1e5
+    best_epoch = 0
+    model.train()
 
-    im_size = config.input_size
+    num_iter_per_epoch = len(training_generator)
+    for epoch in range(opt.num_epochs):
+        model.train()
+        # if torch.cuda.is_available():
+        #     model.module.freeze_bn()
+        # else:
+        #     model.freeze_bn()
+        epoch_loss = []
+        progress_bar = tqdm(training_generator)
+        for iter, data in enumerate(progress_bar):
+            try:
+                optimizer.zero_grad()
+                if torch.cuda.is_available():
+                    cls_loss, reg_loss = model([data['img'].cuda().float(), data['annot'].cuda()])
+                else:
+                    cls_loss, reg_loss = model([data['img'].float(), data['annot']])
 
-    train_ds = labelme.build_dataset(annotations_path=kwargs['root_train'], images_path=kwargs['images_path'], class2idx=class2idx, im_input_size=im_size, shuffle=True)
-    
-    train_ds.map(augment.RandomHorizontalFlip())
-    train_ds.map(augment.RandomCrop())
+                cls_loss = cls_loss.mean()
+                reg_loss = reg_loss.mean()
+                loss = cls_loss + reg_loss
+                if loss == 0:
+                    continue
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+                optimizer.step()
+                epoch_loss.append(float(loss))
+                total_loss = np.mean(epoch_loss)
 
-    train_ds = train_ds.padded_batch(batch_size=kwargs['batch_size'],
-                                     padded_shapes=((*im_size, 3), 
-                                                    ((None,), (None, 4))),
-                                     padding_values=(0., (-1, -1.)))
+                progress_bar.set_description(
+                    'Epoch: {}/{}. Iteration: {}/{}. Cls loss: {:.5f}. Reg loss: {:.5f}. Batch loss: {:.5f} Total loss: {:.5f}'.format(
+                        epoch + 1, opt.num_epochs, iter + 1, num_iter_per_epoch, cls_loss, reg_loss, loss,
+                        total_loss))
+                writer.add_scalar('Train/Total_loss', total_loss, epoch * num_iter_per_epoch + iter)
+                writer.add_scalar('Train/Regression_loss', reg_loss, epoch * num_iter_per_epoch + iter)
+                writer.add_scalar('Train/Classfication_loss (focal loss)', cls_loss, epoch * num_iter_per_epoch + iter)
 
-    valid_ds = None
-    if kwargs['root_valid']:
-        valid_ds = data.labelme.build_dataset(annotations_path=kwargs['root_valid'], images_path=kwargs['images_path'], class2idx=class2idx, im_input_size=im_size, shuffle=False)
-        
-        valid_ds = valid_ds.padded_batch(batch_size=kwargs['batch_size'], padded_shapes=((*im_size, 3), 
-                                                        ((None,), (None, 4))),
-                                         padding_values=(0., (-1, -1.)))
+            except Exception as e:
+                print(e)
+                continue
+        scheduler.step(np.mean(epoch_loss))
 
-    train(config, save_checkpoint_dir, 
-          train_ds, valid_ds, class2idx, **kwargs)
+        if epoch % opt.test_interval == 0:
+            model.eval()
+            loss_regression_ls = []
+            loss_classification_ls = []
+            for iter, data in enumerate(test_generator):
+                with torch.no_grad():
+                    if torch.cuda.is_available():
+                        cls_loss, reg_loss = model([data['img'].cuda().float(), data['annot'].cuda()])
+                    else:
+                        cls_loss, reg_loss = model([data['img'].float(), data['annot']])
+
+                    cls_loss = cls_loss.mean()
+                    reg_loss = reg_loss.mean()
+
+                    loss_classification_ls.append(float(cls_loss))
+                    loss_regression_ls.append(float(reg_loss))
+
+            cls_loss = np.mean(loss_classification_ls)
+            reg_loss = np.mean(loss_regression_ls)
+            loss = cls_loss + reg_loss
+
+            print(
+                'Epoch: {}/{}. Classification loss: {:1.5f}. Regression loss: {:1.5f}. Total loss: {:1.5f}'.format(
+                    epoch + 1, opt.num_epochs, cls_loss, reg_loss,
+                    np.mean(loss)))
+            writer.add_scalar('Test/Total_loss', loss, epoch)
+            writer.add_scalar('Test/Regression_loss', reg_loss, epoch)
+            writer.add_scalar('Test/Classfication_loss (focal loss)', cls_loss, epoch)
+
+            if loss + opt.es_min_delta < best_loss:
+                best_loss = loss
+                best_epoch = epoch
+                torch.save(model, os.path.join(opt.saved_path, "signatrix_efficientdet_coco.pth"))
+
+                dummy_input = torch.rand(opt.batch_size, 3, 512, 512)
+                if torch.cuda.is_available():
+                    dummy_input = dummy_input.cuda()
+                if isinstance(model, nn.DataParallel):
+                    model.module.backbone_net.model.set_swish(memory_efficient=False)
+
+                    torch.onnx.export(model.module, dummy_input,
+                                      os.path.join(opt.saved_path, "signatrix_efficientdet_coco.onnx"),
+                                      verbose=False)
+                    model.module.backbone_net.model.set_swish(memory_efficient=True)
+                else:
+                    model.backbone_net.model.set_swish(memory_efficient=False)
+
+                    torch.onnx.export(model, dummy_input,
+                                      os.path.join(opt.saved_path, "signatrix_efficientdet_coco.onnx"),
+                                      verbose=False)
+                    model.backbone_net.model.set_swish(memory_efficient=True)
+
+            # Early stopping
+            if epoch - best_epoch > opt.es_patience > 0:
+                print("Stop training at epoch {}. The lowest loss achieved is {}".format(epoch, loss))
+                break
+    writer.close()
 
 
 if __name__ == "__main__":
-    main()
+    opt = get_args()
+    train(opt)
