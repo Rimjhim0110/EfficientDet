@@ -2,8 +2,8 @@ import torch.nn as nn
 import torch
 import math
 from efficientnet_pytorch import EfficientNet as EffNet
-from src.utils import BBoxTransform, ClipBoxes, Anchors
-from src.loss import FocalLoss
+from utils import BBoxTransform, ClipBoxes, Anchors
+from loss import FocalLoss
 from torchvision.ops.boxes import nms as nms_torch
 
 
