@@ -1,4 +1,4 @@
-from src.dataset import CocoDataset, Resizer, Normalizer
+from dataset import CocoDataset, Resizer, Normalizer
 from torchvision import transforms
 from pycocotools.cocoeval import COCOeval
 import json
