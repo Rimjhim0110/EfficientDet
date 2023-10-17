@@ -4,8 +4,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from src.dataset import CocoDataset, Resizer, Normalizer, Augmenter, collater
-from src.model import EfficientDet
+from dataset import CocoDataset, Resizer, Normalizer, Augmenter, collater
+from efficientdet import EfficientDet
 from tensorboardX import SummaryWriter
 import shutil
 import numpy as np
