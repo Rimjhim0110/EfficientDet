@@ -1,63 +1,26 @@
-import math
-import typing
+COCO_CLASSES = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
+                "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+                "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite",
+                "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle",
+                "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
+                "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant",
+                "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+                "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+                "teddy bear", "hair drier", "toothbrush"]
 
-# D7 the same as D6, therefore we repeat the 6 PHI
-PHIs = list(range(0, 7)) + [6]
-
-class EfficientDetBaseConfig(typing.NamedTuple):
-    # Input scaling
-    input_size: int = 512
-    # Backbone scaling
-    backbone: int = 0
-    # BiFPN scaling
-    Wbifpn: int = 64
-    Dbifpn: int = 3
-    # Box predictor head scaling
-    Dclass: int = 3
-
-    def print_table(self, min_D: int = 0, max_D: int = 7) -> None:
-        for i in range(min_D, max_D + 1):
-            EfficientDetCompudScaling(D=i).print_conf()
-
-class EfficientDetCompudScaling(object):
-    def __init__(self, 
-                 config : EfficientDetBaseConfig = EfficientDetBaseConfig(), 
-                 D : int = 0):
-        assert D >= 0 and D <= 7, 'D must be between [0, 7]'
-        self.D = D
-        self.base_conf = config
-    
-    @property
-    def input_size(self) -> typing.Tuple[int, int]:
-        if self.D == 7:
-            size = 1536
-        else:
-            size = self.base_conf.input_size + PHIs[self.D] * 128
-        return size, size
-    
-    @property
-    def Wbifpn(self) -> int:
-        return int(self.base_conf.Wbifpn * 1.35 ** PHIs[self.D])
-    
-    @property
-    def Dbifpn(self) -> int:
-        return self.base_conf.Dbifpn + PHIs[self.D]
-    
-    @property
-    def Dclass(self) -> int:
-        return self.base_conf.Dclass + math.floor(PHIs[self.D] / 3)
-    
-    @property
-    def B(self) -> int:
-        return self.D
-    
-    def print_conf(self) -> None:
-        print(f'D{self.D} | B{self.B} | {self.input_size:5d} | '
-              f'{self.Wbifpn:4d} | {self.Dbifpn} | {self.Dclass} |')
-    
-
-class AnchorsConfig(typing.NamedTuple):
-    sizes: typing.Sequence[int] = (32, 64, 128, 256, 512)
-    strides: typing.Sequence[int] = (8, 16, 32, 64, 128)
-    ratios: typing.Sequence[float] = (1, 2, .5)
-    scales: typing.Sequence[float] = (2 ** 0, 2 ** (1 / 3.0), 2 ** (2 / 3.0))
+colors = [(39, 129, 113), (164, 80, 133), (83, 122, 114), (99, 81, 172), (95, 56, 104), (37, 84, 86), (14, 89, 122),
+          (80, 7, 65), (10, 102, 25), (90, 185, 109), (106, 110, 132), (169, 158, 85), (188, 185, 26), (103, 1, 17),
+          (82, 144, 81), (92, 7, 184), (49, 81, 155), (179, 177, 69), (93, 187, 158), (13, 39, 73), (12, 50, 60),
+          (16, 179, 33), (112, 69, 165), (15, 139, 63), (33, 191, 159), (182, 173, 32), (34, 113, 133), (90, 135, 34),
+          (53, 34, 86), (141, 35, 190), (6, 171, 8), (118, 76, 112), (89, 60, 55), (15, 54, 88), (112, 75, 181),
+          (42, 147, 38), (138, 52, 63), (128, 65, 149), (106, 103, 24), (168, 33, 45), (28, 136, 135), (86, 91, 108),
+          (52, 11, 76), (142, 6, 189), (57, 81, 168), (55, 19, 148), (182, 101, 89), (44, 65, 179), (1, 33, 26),
+          (122, 164, 26), (70, 63, 134), (137, 106, 82), (120, 118, 52), (129, 74, 42), (182, 147, 112), (22, 157, 50),
+          (56, 50, 20), (2, 22, 177), (156, 100, 106), (21, 35, 42), (13, 8, 121), (142, 92, 28), (45, 118, 33),
+          (105, 118, 30), (7, 185, 124), (46, 34, 146), (105, 184, 169), (22, 18, 5), (147, 71, 73), (181, 64, 91),
+          (31, 39, 184), (164, 179, 33), (96, 50, 18), (95, 15, 106), (113, 68, 54), (136, 116, 112), (119, 139, 130),
+          (31, 139, 34), (66, 6, 127), (62, 39, 2), (49, 99, 180), (49, 119, 155), (153, 50, 183), (125, 38, 3),
+          (129, 87, 143), (49, 87, 40), (128, 62, 120), (73, 85, 148), (28, 144, 118), (29, 9, 24), (175, 45, 108),
+          (81, 175, 64), (178, 19, 157), (74, 188, 190), (18, 114, 2), (62, 128, 96), (21, 3, 150), (0, 6, 95),
+          (2, 20, 184), (122, 37, 185)]
