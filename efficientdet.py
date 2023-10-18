@@ -68,17 +68,7 @@ class BiFPN(nn.Module):
         self.p7_w2_relu = nn.ReLU()
 
     def forward(self, inputs):
-        """
-            P7_0 -------------------------- P7_2 -------->
-
-            P6_0 ---------- P6_1 ---------- P6_2 -------->
-
-            P5_0 ---------- P5_1 ---------- P5_2 -------->
-
-            P4_0 ---------- P4_1 ---------- P4_2 -------->
-
-            P3_0 -------------------------- P3_2 -------->
-        """
+        #model architecture
 
         # P3_0, P4_0, P5_0, P6_0 and P7_0
         p3_in, p4_in, p5_in, p6_in, p7_in = inputs
@@ -294,7 +284,7 @@ class EfficientDet(nn.Module):
 
 
 if __name__ == '__main__':
-    from tensorboardX import SummaryWriter
+    # from tensorboardX import SummaryWriter
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
