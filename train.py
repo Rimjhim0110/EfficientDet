@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from dataset import CocoDataset, Resizer, Normalizer, Augmenter, collater
 from efficientdet import EfficientDet
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 import shutil
 import numpy as np
 from tqdm.autonotebook import tqdm
@@ -70,7 +70,7 @@ def train(opt):
     if not os.path.isdir(opt.saved_path):
         os.makedirs(opt.saved_path)
 
-    writer = SummaryWriter(opt.log_path)
+    # writer = SummaryWriter(opt.log_path)
     if torch.cuda.is_available():
         model = model.cuda()
         model = nn.DataParallel(model)
@@ -114,9 +114,9 @@ def train(opt):
                     'Epoch: {}/{}. Iteration: {}/{}. Cls loss: {:.5f}. Reg loss: {:.5f}. Batch loss: {:.5f} Total loss: {:.5f}'.format(
                         epoch + 1, opt.num_epochs, iter + 1, num_iter_per_epoch, cls_loss, reg_loss, loss,
                         total_loss))
-                writer.add_scalar('Train/Total_loss', total_loss, epoch * num_iter_per_epoch + iter)
-                writer.add_scalar('Train/Regression_loss', reg_loss, epoch * num_iter_per_epoch + iter)
-                writer.add_scalar('Train/Classfication_loss (focal loss)', cls_loss, epoch * num_iter_per_epoch + iter)
+                # writer.add_scalar('Train/Total_loss', total_loss, epoch * num_iter_per_epoch + iter)
+                # writer.add_scalar('Train/Regression_loss', reg_loss, epoch * num_iter_per_epoch + iter)
+                # writer.add_scalar('Train/Classfication_loss (focal loss)', cls_loss, epoch * num_iter_per_epoch + iter)
 
             except Exception as e:
                 print(e)
@@ -148,9 +148,9 @@ def train(opt):
                 'Epoch: {}/{}. Classification loss: {:1.5f}. Regression loss: {:1.5f}. Total loss: {:1.5f}'.format(
                     epoch + 1, opt.num_epochs, cls_loss, reg_loss,
                     np.mean(loss)))
-            writer.add_scalar('Test/Total_loss', loss, epoch)
-            writer.add_scalar('Test/Regression_loss', reg_loss, epoch)
-            writer.add_scalar('Test/Classfication_loss (focal loss)', cls_loss, epoch)
+            # writer.add_scalar('Test/Total_loss', loss, epoch)
+            # writer.add_scalar('Test/Regression_loss', reg_loss, epoch)
+            # writer.add_scalar('Test/Classfication_loss (focal loss)', cls_loss, epoch)
 
             if loss + opt.es_min_delta < best_loss:
                 best_loss = loss
@@ -179,7 +179,7 @@ def train(opt):
             if epoch - best_epoch > opt.es_patience > 0:
                 print("Stop training at epoch {}. The lowest loss achieved is {}".format(epoch, loss))
                 break
-    writer.close()
+    # writer.close()
 
 
 if __name__ == "__main__":
