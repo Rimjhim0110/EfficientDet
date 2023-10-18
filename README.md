@@ -32,9 +32,8 @@ Before you begin, ensure you have met the following requirements:
 
 The codebase is organized into the following modules:
 
-- `backbone.py`: Describes the EfficientDet backbone architecture, offering various EfficientNet variants.
-- `bifpn.py`: Implements Bi-directional Feature Pyramid Network (BiFPN) responsible for multi-scale feature fusion.
-- `cnn_layers.py`: Includes reusable layers and utilities that help construct the model architecture.
-- `efficientdet.py`: Contains the core EfficientDet model that integrates backbone architecture, feature extraction, and prediction networks.
-- `retinanet.py`: Defines the RetinaNet architecture responsible for bounding box prediction and classification.
-- `utils`: A collection of utility functions used throughout the codebase.
+- `config.py`: Contains configurations and settings for the project, such as COCO classes and colors used for visualization.
+- `dataset.py`: Includes data preprocessing, augmentation, as well as loading and handling of the COCO dataset.
+- `efficientdet.py`: Contains the core EfficientDet model that defines the architecture and forward pass of the model, including classification and regression heads.
+- `loss_function.py`: Contains the implementation of the Focal Loss used for training the object detection model.
+- `utils.py`: Contains utility functions used throughout the project, such as BBoxTransform for bounding box transformations, ClipBoxes for clipping boxes to image boundaries, and Anchors for generating anchor boxes.
