@@ -5,6 +5,7 @@ EfficientDet is an efficient and scalable object detection framework that system
 ## Table of Contents
 
 - [Project Overview](#project-overview)
+- [Prerequisites](#prerequisites)
 - [Code Organization](#code-organization)
 
 ## Project Overview
@@ -16,7 +17,17 @@ EfficientDet represents an evolution in object detection by improving both effic
 - **Versatile Object Detectors**: A range of pre-trained detectors suitable for various resource constraints
 - **State-of-the-Art Performance**: Top-tier object detection results on benchmark COCO dataset with fewer computational resources.
 - **Open-Source Initiative**: The codebase is open-source, fostering collaboration and further development in the computer vision community.
+  
+## Prerequisites
 
+Before you begin, ensure you have met the following requirements:
+
+- Python 3.6+
+- PyTorch
+- TensorBoard
+- OpenCV (cv2)
+- pycocotools
+  
 ## Code Organization
 
 The codebase is organized into the following modules:
