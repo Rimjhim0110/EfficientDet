@@ -40,8 +40,8 @@ The codebase is organized into the following modules:
 ## Citation
 
 `@article{EfficientDetSignatrix,
-    Author = {Signatrix GmbH},
-    Title = {A Pytorch Implementation of EfficientDet Object Detection},
-    Journal = {https://github.com/signatrix/efficientdet},
-    Year = {2020}
+Author = {Signatrix GmbH},
+Title = {A Pytorch Implementation of EfficientDet Object Detection},
+Journal = {https://github.com/signatrix/efficientdet},
+Year = {2020}
 }`
