@@ -37,11 +37,7 @@ The codebase is organized into the following modules:
 - `loss_function.py`: Contains the implementation of the Focal Loss used for training the object detection model.
 - `utils.py`: Contains utility functions used throughout the project, such as BBoxTransform for bounding box transformations, ClipBoxes for clipping boxes to image boundaries, and Anchors for generating anchor boxes.
 
-## Citation
+## References
 
-`@article{EfficientDetSignatrix,
-Author = {Signatrix GmbH},
-Title = {A Pytorch Implementation of EfficientDet Object Detection},
-Journal = {https://github.com/signatrix/efficientdet},
-Year = {2020}
-}`
+` (https://github.com/google/automl/blob/master/efficientdet/README.md)https://github.com/google/automl/blob/master/efficientdet 
+`
