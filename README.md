@@ -2,20 +2,23 @@
 
 EfficientDet is an efficient and scalable object detection framework that systematically explores neural network architecture design choices to optimize efficiency. This project is an implementation of key components proposed in the research paper, "EfficientDet: Scalable and Efficient Object Detection" by Mingxing Tan, Ruoming Pang, and Quoc V. Le from Google Research. You can access the full paper [here](https://arxiv.org/abs/1911.09070).
 
+![EfficientDet Architecture](Images/EfficientDet_Architecture.jpg)
+
 ## Table of Contents
 
 - [Project Overview](#project-overview)
 - [Prerequisites](#prerequisites)
 - [Code Organization](#code-organization)
+- [References](#references)
 
 ## Project Overview
 
-EfficientDet represents an evolution in object detection by improving both efficiency and effectiveness. The features highlighting its significance include:
+EfficientDet represents a significant evolution in object detection by improving both efficiency and effectiveness. The key features that highlight its significance include:
 
-- **Bi-directional Feature Pyramid Network (BiFPN)**
-- **Compound Scaling Method**
-- **State-of-the-Art Performance**
-- **Open-Source Initiative**
+- **Bi-directional Feature Pyramid Network (BiFPN):** An innovative feature network that allows easy and fast multi-scale feature fusion.
+- **Compound Scaling Method:** A novel method that uniformly scales the resolution, depth, and width for all backbone, feature network, and box prediction networks at the same time.
+- **State-of-the-Art Performance:** EfficientDet achieves state-of-the-art accuracy on COCO dataset with an order of magnitude fewer parameters and FLOPS.
+- **Open-Source Initiative:** The project is open-source, encouraging community contributions and collaboration.
   
 ## Prerequisites
 
@@ -39,5 +42,5 @@ The codebase is organized into the following modules:
 
 ## References
 
-` (https://github.com/google/automl/blob/master/efficientdet/README.md)https://github.com/google/automl/blob/master/efficientdet 
+` https://github.com/google/automl/blob/master/efficientdet 
 `
