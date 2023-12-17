@@ -13,7 +13,7 @@ EfficientDet is an efficient and scalable object detection framework that system
 EfficientDet represents an evolution in object detection by improving both efficiency and effectiveness. The features highlighting its significance include:
 
 - **Bi-directional Feature Pyramid Network (BiFPN)**
-- **Scalable Architecture**
+- **Compound Scaling Method**
 - **State-of-the-Art Performance**
 - **Open-Source Initiative**
   
